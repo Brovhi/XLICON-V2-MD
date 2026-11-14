@@ -1,8 +1,10 @@
 const axios = require('axios');
 
+const OWNER_NAME = '👑 HaSSaN BrOvHi 👑';
+
 module.exports = {
-    name: 'xlicon',
-    description: 'Auto reply audio when xlicon is detected',
+    name: 'brovhi',
+    description: 'Auto reply audio when Brovhi is detected',
 
     async execute() {},
 
@@ -11,13 +13,15 @@ module.exports = {
 
         const text = m.text.trim().toLowerCase();
 
-        if (text !== 'xlicon') return;
+        // 👇 Yahan trigger word change kar diya hai (xlicon ki jagah brovhi/hassan)
+        if (text !== 'brovhi' && text !== 'hassan') return;
 
         try {
             const prefix = global.BOT_PREFIX || '.';
 
+            // 👇 Reply text mein aapki branding add ki hai
             await m.reply(
-                `ɪꜰ ʏᴏᴜ ɴᴇᴇᴅ ʜᴇʟᴘ, ᴛʏᴘᴇ ${prefix}ᴍᴇɴᴜ`
+                `ɪꜰ ʏᴏᴜ ɴᴇᴇᴅ ʜᴇʟᴘ, ᴛʏᴘᴇ ${prefix}ᴍᴇɴᴜ\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`
             );
 
             const audioUrl = 'https://files.catbox.moe/bo5yvg.mp3';
@@ -35,7 +39,7 @@ module.exports = {
             });
 
         } catch (err) {
-            console.error('❌ Xlicon error:', err);
+            console.error('❌ Brovhi Plugin Error:', err);
         }
     }
 };
