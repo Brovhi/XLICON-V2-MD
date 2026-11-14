@@ -1,3 +1,8 @@
+const { generateWAMessageFromContent, generateMessageID } = require('@adiwajshing/baileys')
+
+const OWNER_NAME = '👑 𝐇𝐚𝐒𝐒𝐚𝐧 𝐁𝐫𝐎𝐯𝐇𝐢 👑'
+const BOT_NAME = '𝐇𝐚𝐒𝐒𝐚𝐧 𝐁𝐫𝐎𝐯𝐇𝐢 𝐌𝐃'
+
 module.exports = {
     name: 'menu2',
     description: 'Interactive menu with essential commands',
@@ -5,21 +10,25 @@ module.exports = {
 
     async execute(sock, m) {
         try {
+            const prefix = global.BOT_PREFIX || '.';
+
             const msg = generateWAMessageFromContent(
                 m.from,
                 {
                     interactiveMessage: {
                         header: {
-                            title: 'XLICON v2 ᴍᴜʟᴛɪᴅᴇᴠɪᴄᴇ'
+                            // 👇 XLICON ki jagah aapka bot ka naam
+                            title: BOT_NAME 
                         },
                         body: {
                             text:
                                 `Tap any button below to execute the command instantly:\n\n` +
-                                `Current prefix: *${global.BOT_PREFIX}*\n\n` +
-                                `> 「 𝙏𝙞𝙢𝙚 - 𝙏𝙞𝙢𝙚𝙡𝙚𝙨𝙨 」`
+                                `Current prefix: *${prefix}*\n\n` +
+                                `> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`
                         },
                         footer: {
-                            text: 'Instant commands • abztech.xyz'
+                            // 👇 Footer change kar diya
+                            text: `Powered by ${OWNER_NAME}`
                         },
                         contextInfo: {
                             stanzaId: m.key.id,
@@ -32,21 +41,21 @@ module.exports = {
                                     name: 'quick_reply',
                                     buttonParamsJson: JSON.stringify({
                                         display_text: 'Owner',
-                                        id: `${global.BOT_PREFIX}owner`
+                                        id: `${prefix}owner`
                                     })
                                 },
                                 {
                                     name: 'quick_reply',
                                     buttonParamsJson: JSON.stringify({
                                         display_text: 'Alive',
-                                        id: `${global.BOT_PREFIX}alive`
+                                        id: `${prefix}alive`
                                     })
                                 },
                                 {
                                     name: 'quick_reply',
                                     buttonParamsJson: JSON.stringify({
                                         display_text: 'Uptime',
-                                        id: `${global.BOT_PREFIX}uptime`
+                                        id: `${prefix}uptime`
                                     })
                                 },
                                 {
@@ -55,17 +64,18 @@ module.exports = {
                                         display_text: 'More',
                                         sections: [
                                             {
-                                                title: 'XLICON v2',
+                                                // 👇 Section title mein aapka naam
+                                                title: BOT_NAME,
                                                 rows: [
                                                     {
                                                         header: 'Ping',
                                                         title: 'Check Bot Ping',
-                                                        id: `${global.BOT_PREFIX}ping`
+                                                        id: `${prefix}ping`
                                                     },
                                                     {
                                                         header: 'Menu',
-                                                        title: 'Show Menu',
-                                                        id: `${global.BOT_PREFIX}menu`
+                                                        title: 'Show Full Menu',
+                                                        id: `${prefix}menu`
                                                     }
                                                 ]
                                             }
@@ -131,7 +141,7 @@ module.exports = {
 
         } catch (error) {
             console.error('Menu2 plugin error:', error);
-            await m.reply(String(error.stack || error));
+            await m.reply(`❌ Error: ${String(error.message || error)}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
         }
     }
 };
