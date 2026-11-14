@@ -1,10 +1,6 @@
 const axios = require('axios');
 const fs = require('fs');
 
-// 👇 Aapki Branding
-const OWNER_NAME = '👑 𝐇𝐚𝐒𝐒𝐚𝐧 𝐁𝐫𝐎𝐯𝐇𝐢 👑';
-const BOT_NAME = 'HaSSaN BrOvHi MD';
-
 module.exports = {
     name: 'tiktok',
     description: 'Download TikTok videos without watermark',
@@ -16,16 +12,18 @@ module.exports = {
         let filePath;
         try {
             if (!args.length) {
-                return await m.reply(`ᴜsᴀɢᴇ: .ᴛɪᴋᴛᴏᴋ <ᴜʀʟ>\n\nᴇxᴀᴍᴘʟᴇ: .ᴛɪᴋᴛᴏᴋ https://www.tiktok.com/@scout2015/video/6718335390845095173\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+                return await m.reply(`ᴜsᴀɢᴇ: .ᴛɪᴋᴛᴏᴋ <ᴜʀʟ>
+
+ᴇxᴀᴍᴘʟᴇ: .ᴛɪᴋᴛᴏᴋ https://www.tiktok.com/@scout2015/video/6718335390845095173`);
             }
 
             const url = args[0];
 
             if (!url.includes('tiktok.com')) {
-                return await m.reply(`ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴠᴀʟɪᴅ ᴛɪᴋᴛᴏᴋ ᴜʀʟ\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+                return await m.reply('ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴠᴀʟɪᴅ ᴛɪᴋᴛᴏᴋ ᴜʀʟ');
             }
 
-            await m.reply(`ᴅᴏᴡɴʟᴏᴀᴅɪɴɢ ᴛɪᴋᴛᴏᴋ ᴠɪᴅᴇᴏ...\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+            await m.reply('ᴅᴏᴡɴʟᴏᴀᴅɪɴɢ ᴛɪᴋᴛᴏᴋ ᴠɪᴅᴇᴏ...');
 
             const apiUrl = `https://api-abztech.zone.id/download/ttdnl?url=${encodeURIComponent(url)}`;
 
@@ -33,7 +31,7 @@ module.exports = {
             const data = response.data;
 
             if (!data || data.success !== true || data.type !== 'video' || !data.video) {
-                return await m.reply(`ғᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ ᴛɪᴋᴛᴏᴋ ᴠɪᴅᴇᴏ\nᴘʟᴇᴀsᴇ ᴛʀʏ ᴀɢᴀɪɴ ʟᴀᴛᴇʀ\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+                return await m.reply('ғᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ ᴛɪᴋᴛᴏᴋ ᴠɪᴅᴇᴏ\nᴘʟᴇᴀsᴇ ᴛʀʏ ᴀɢᴀɪɴ ʟᴀᴛᴇʀ');
             }
 
             const videoUrl = data.video;
@@ -64,17 +62,19 @@ module.exports = {
             const stats = data.stats || {};
             const author = data.author || {};
 
-            // 👇 Caption mein aapki branding add kar di hai
-            const caption = `*ᴛɪᴋᴛᴏᴋ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ*\n\n` +
-                            `ᴛɪᴛʟᴇ: ${data.title || 'ɴᴏ ᴛɪᴛʟᴇ'}\n` +
-                            `ᴅᴜʀᴀᴛɪᴏɴ: ${data.duration || 'ɴ/ᴀ'}s\n` +
-                            `ᴠɪᴇᴡs: ${stats.play || 0}\n` +
-                            `ʟɪᴋᴇs: ${stats.like || 0}\n` +
-                            `ᴄᴏᴍᴍᴇɴᴛs: ${stats.comment || 0}\n` +
-                            `sʜᴀʀᴇs: ${stats.share || 0}\n\n` +
-                            `ᴀᴜᴛʜᴏʀ: ${author.nickname || 'ᴜɴᴋɴᴏᴡɴ'}\n` +
-                            `@${author.username || ''}\n\n` +
-                            `ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ ʙʏ ${OWNER_NAME}`;
+            const caption = `*ᴛɪᴋᴛᴏᴋ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ*
+
+ᴛɪᴛʟᴇ: ${data.title || 'ɴᴏ ᴛɪᴛʟᴇ'}
+ᴅᴜʀᴀᴛɪᴏɴ: ${data.duration || 'ɴ/ᴀ'}s
+ᴠɪᴇᴡs: ${stats.play || 0}
+ʟɪᴋᴇs: ${stats.like || 0}
+ᴄᴏᴍᴍᴇɴᴛs: ${stats.comment || 0}
+sʜᴀʀᴇs: ${stats.share || 0}
+
+ᴀᴜᴛʜᴏʀ: ${author.nickname || 'ᴜɴᴋɴᴏᴡɴ'}
+@${author.username || ''}
+
+ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ ʙʏ XLICON V2`;
 
             await sock.sendMessage(m.from, {
                 video: fs.readFileSync(filePath),
@@ -84,7 +84,7 @@ module.exports = {
 
         } catch (err) {
             console.error('TikTok Error:', err);
-            await m.reply(`ᴇʀʀᴏʀ: ${err.message}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+            await m.reply(`ᴇʀʀᴏʀ: ${err.message}`);
         } finally {
             if (filePath && fs.existsSync(filePath)) {
                 try { fs.unlinkSync(filePath); } catch (_) {}
@@ -92,3 +92,4 @@ module.exports = {
         }
     }
 };
+        
