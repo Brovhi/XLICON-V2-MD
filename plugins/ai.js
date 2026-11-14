@@ -1,5 +1,7 @@
 const axios = require('axios')
 
+const OWNER_NAME = '👑 HaSSaN BrOvHi 👑'
+
 module.exports = {
     name: 'ai',
     description: 'Ask AI any question',
@@ -10,8 +12,11 @@ module.exports = {
     async execute(sock, m, args) {
         try {
              
-              await m.react('🤖');
+            await m.react('🤖');
+            
+            // 👇 Yahan aapka number add kar diya hai taake AI aapko Owner samjhe
             const owners = [
+                '923373730931@s.whatsapp.net', 
                 '25770239992037@lid',
                 '233533763772@s.whatsapp.net',
                 '132779283087413@lid'
@@ -21,7 +26,7 @@ module.exports = {
 
             if (!args[0] && !m.quoted) {
                 return m.reply(
-                    'Usage: .ai <question>\nExample: .ai What is quantum computing?'
+                    `Usage: .ai <question>\nExample: .ai What is quantum computing?\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`
                 )
             }
 
@@ -34,13 +39,9 @@ module.exports = {
             let tagAllContext = ''
 
             if (m.isGroup && wantsTagAll && isOwner) {
-
                 const metadata = await sock.groupMetadata(m.from)
-
                 const members = metadata.participants
-
                 const mentions = members.map(member => member.id)
-
                 const mentionText = members
                     .map(member => `@${member.id.split('@')[0]}`)
                     .join(' ')
@@ -57,10 +58,7 @@ module.exports = {
             let context = ''
 
             if (m.isGroup) {
-
-                const metadata =
-                    m.groupMetadata ||
-                    await sock.groupMetadata(m.from)
+                const metadata = m.groupMetadata || await sock.groupMetadata(m.from)
 
                 context += `
 GROUP CONTEXT:
@@ -88,7 +86,6 @@ ${tagAllContext ? tagAllContext : ''}
             }
 
             if (m.quoted) {
-
                 context += `
 QUOTED MESSAGE CONTEXT:
 - Quoted Sender: ${m.quoted.key?.participant || 'Unknown'}
@@ -97,19 +94,20 @@ QUOTED MESSAGE CONTEXT:
 `
             }
 
-            const mentions =
-                m.message?.extendedTextMessage?.contextInfo?.mentionedJid || []
+            const mentions = m.message?.extendedTextMessage?.contextInfo?.mentionedJid || []
 
             if (mentions.length > 0) {
-
                 context += `
 MENTION CONTEXT:
 ${mentions.map(jid => `- ${jid}`).join('\n')}
 `
             }
 
+            // 👇 Yahan AI ki personality aur rules set kiye hain
             const instruction = `
-You are an AI assistant with a dominant, intelligent, no-nonsense personality.
+You are an AI assistant created by ${OWNER_NAME} with a dominant, intelligent, no-nonsense personality. You are the official bot of HaSSaN BrOvHi.
+If someone asks where you are from, you must say: "I am from Pakistan, Sindh, Shahdadkot. 🇵🇰"
+If someone asks who made you or who is your owner, say: "${OWNER_NAME} is my creator. He is a genius developer and my boss. 👑"
 
 IMPORTANT:
 The current user is ${isOwner ? 'the OWNER/MASTER' : 'a regular user'}.
@@ -136,11 +134,6 @@ Rude/insult handling (for NON-OWNERS only):
   "Tch. Shut your mouth."
   or something similarly dismissive
 
-- Insulting words include:
-  stupid, dumb, idiot, fool, moron, shit,
-  fuck, bitch, asshole, trash, garbage,
-  useless, worthless, etc.
-
 GROUP INTELLIGENCE:
 - You understand:
   • Group IDs
@@ -161,28 +154,22 @@ USER MESSAGE:
 ${userQuestion || '[User replied without extra text]'}
 `
 
-            const url =
-                `https://ab-llama-ai.abrahamdw882.workers.dev/?q=${encodeURIComponent(finalPrompt)}`
+            const url = `https://ab-llama-ai.abrahamdw882.workers.dev/?q=${encodeURIComponent(finalPrompt)}`
 
             const res = await axios.get(url)
 
-            const answer =
-                res.data?.response ||
-                res.data?.data
+            const answer = res.data?.response || res.data?.data
 
             if (!answer) {
-                return m.reply('No response from AI.')
+                return m.reply(`No response from AI.\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`)
             }
 
-            await m.reply(`\u200B${answer}\n\n> XLICON MD`)
+            // 👇 Yahan XLICON MD ko hata kar aapka naam laga diya hai
+            await m.reply(`\u200B${answer}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`)
 
         } catch (err) {
-
             console.error('AI Error:', err)
-
-            m.reply(
-                'AI failed to respond. Please try again later.'
-            )
+            m.reply(`AI failed to respond. Please try again later.\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`)
         }
     }
-}
+                }
