@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const OWNER_NAME = '👑 HaSSaN BrOvHi 👑';
+
 async function getRealJid(sock, id) {
     if (!id.includes('@lid')) return id;
     
@@ -47,6 +49,8 @@ module.exports = {
     aliases: ['owners', 'addowner', 'removeowner', 'delowner'],
     
     async execute(sock, m, args) {
+        // Fallback prefix agar global.BOT_PREFIX na ho
+        const prefix = global.BOT_PREFIX || '.';
         const command = args[0]?.toLowerCase();
         
         let target = null;
@@ -63,26 +67,34 @@ module.exports = {
             target = m.quoted.sender;
         }
         
+        // 1. Show Owner List
         if (!command || command === 'list') {
             if (!global.owners || global.owners.length === 0) {
-                return m.reply('No owners configured yet.');
+                return m.reply(`❌ No owners configured yet for ${OWNER_NAME}.`);
             }
-            let list = '*👑 Bot Owners*\n\n';
+            let list = `*👑 ${OWNER_NAME} Owners*\n\n`;
             global.owners.forEach((owner, i) => {
                 const number = owner.split('@')[0];
                 list += `${i+1}. ${number}\n`;
             });
+            list += `\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`;
             return m.reply(list);
         }
         
-        const isOwner = global.owners?.includes(m.sender) || global.owners?.includes(m.sender.replace('@lid', '@s.whatsapp.net'));
+        // Check if sender is owner
+        const senderJid = m.sender;
+        const isOwner = global.owners?.includes(senderJid) || 
+                        global.owners?.includes(senderJid.replace('@lid', '@s.whatsapp.net')) ||
+                        global.owners?.includes(senderJid.split('@')[0] + '@s.whatsapp.net');
+                        
         if (!isOwner) {
-            return m.reply('❌ Only owners can use this command');
+            return m.reply(`❌ Only ${OWNER_NAME}'s owners can use this command!`);
         }
         
+        // 2. Add Owner
         if (command === 'add') {
             if (!target) {
-                return m.reply(`Usage: ${global.BOT_PREFIX}owner add @user or 256727256090`);
+                return m.reply(`*Usage:* ${prefix}owner add @user or 923001234567`);
             }
             
             const realJid = await getRealJid(sock, target);
@@ -94,18 +106,19 @@ module.exports = {
             global.owners.push(realJid);
             saveOwners();
             
-            await m.reply(`✅ Added ${realJid.split('@')[0]} as owner`);
+            await m.reply(`✅ Added ${realJid.split('@')[0]} as an owner for ${OWNER_NAME}`);
         }
         
+        // 3. Remove Owner
         else if (command === 'remove' || command === 'del') {
             if (!target) {
-                return m.reply(`Usage: ${global.BOT_PREFIX}owner remove @user`);
+                return m.reply(`*Usage:* ${prefix}owner remove @user`);
             }
             
             const realJid = await getRealJid(sock, target);
             
             if (realJid === m.sender || realJid === m.sender.replace('@lid', '@s.whatsapp.net')) {
-                return m.reply('❌ You cannot remove yourself');
+                return m.reply('❌ You cannot remove yourself!');
             }
             
             if (!global.owners.includes(realJid)) {
@@ -118,8 +131,13 @@ module.exports = {
             await m.reply(`✅ Removed ${realJid.split('@')[0]} from owners`);
         }
         
+        // 4. Help Message
         else {
-            m.reply(`*Owner Commands:*\n\n${global.BOT_PREFIX}owner list - Show all owners\n${global.BOT_PREFIX}owner add @user - Add owner\n${global.BOT_PREFIX}owner remove @user - Remove owner`);
+            m.reply(`*👑 ${OWNER_NAME} Owner Commands:*\n\n` +
+                    `${prefix}owner list - Show all owners\n` +
+                    `${prefix}owner add @user - Add owner\n` +
+                    `${prefix}owner remove @user - Remove owner\n\n` +
+                    `> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
         }
     }
 };
