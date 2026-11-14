@@ -2,6 +2,10 @@ const axios = require('axios');
 const fetch = require('node-fetch');
 const googleTTS = require('google-tts-api');
 
+const OWNER_NAME = '👑 𝐇𝐚𝐒𝐒𝐚𝐧 𝐁𝐫𝐎𝐯𝐇𝐢 👑';
+const USER_PIC = 'https://i.imgur.com/oeMC33b.jpeg'; // Aapki Pic
+const OWNER_WA = 'https://wa.me/923373730931'; // Aapka Number
+
 async function getTTSBuffer(text, lang = 'en') {
   try {
     const audioChunks = await googleTTS.getAllAudioBase64(text, {
@@ -36,7 +40,7 @@ async function getTTSBuffer(text, lang = 'en') {
     const ttsData = await ttsResponse.json();
     const audioRes = await axios.get(ttsData.url, {
       responseType: "arraybuffer",
-      headers: { 'User-Agent': 'Mozilla/5.0' },
+      headers: { "User-Agent": "Mozilla/5.0" },
       timeout: 15000
     });
     return Buffer.from(audioRes.data);
@@ -54,10 +58,9 @@ module.exports = {
 
   async execute(sock, m, args) {
     try {
-         
-         await m.react('🔊');
+      await m.react('🔊');
       if (!args[0]) {
-        return m.reply("ᴜsᴀɢᴇ:\n.ᴀɪᴠ <ʏᴏᴜʀ ǫᴜᴇsᴛɪᴏɴ>\n.ᴀɪᴠ ʜɪ\nᴇxᴀᴍᴘʟᴇ: .ᴀɪᴠ ᴡʜᴀᴛ ɪs ᴛʜᴇ ᴄᴀᴘɪᴛᴀʟ ᴏꜰ ꜰʀᴀɴᴄᴇ");
+        return m.reply(`ᴜsᴀɢᴇ:\n.aiv <ʏᴏᴜʀ ǫᴜᴇsᴛɪᴏɴ>\nᴇxᴀᴍᴘʟᴇ: .aiv ᴡʜᴀᴛ ɪs ᴛʜᴇ ᴄᴀᴘɪᴛᴀʟ ᴏꜰ ꜰʀᴀɴᴄᴇ\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
       }
 
       await m.reply("⭐ ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ... ᴛʜɪɴᴋɪɴɢ..");
@@ -65,22 +68,12 @@ module.exports = {
       const userQuery = args.join(" ").trim();
 
       if (userQuery.toLowerCase() === 'hi' || userQuery.toLowerCase() === 'hello') {
-
-        const greeting = "Hello! I am your AI voice assistant. How can I help you today?";
+        const greeting = "Hello! I am your AI voice assistant created by HaSSaN BrOvHi. How can I help you today?";
         const buffer = await getTTSBuffer(greeting, 'en');
 
         const quotedMsg = m.quoted || {
-          key: {
-            remoteJid: m.from,
-            fromMe: false,
-            id: m.id,
-            participant: m.sender
-          },
-          message: {
-            extendedTextMessage: {
-              text: m.body
-            }
-          }
+          key: { remoteJid: m.from, fromMe: false, id: m.id, participant: m.sender },
+          message: { extendedTextMessage: { text: m.body } }
         };
 
         await sock.sendMessage(
@@ -95,15 +88,15 @@ module.exports = {
               isForwarded: true,
               forwardedNewsletterMessageInfo: {
                 newsletterJid: '120363230794474148@newsletter',
-                newsletterName: 'ᴀʙ-ᴢᴛᴇᴄʜ🇬🇭「 ᴀɪ ᴠᴏɪᴄᴇ ᴀssɪsᴛᴀɴᴛ 」',
+                newsletterName: 'HaSSaN BrOvHi MD',
                 serverMessageId: 1
               },
               externalAdReply: {
-                title: "🎤 ᴀɪ ᴠᴏɪᴄᴇ ʀᴇsᴘᴏɴsᴇ",
+                title: `🎤 ᴀɪ ᴠᴏɪᴄᴇ ʀᴇsᴘᴏɴsᴇ`,
                 body: "ɢʀᴇᴇᴛɪɴɢ ᴍᴇssᴀɢᴇ",
-                thumbnailUrl: "https://i.ibb.co/4T7Y5qD/ab-tech-logo.jpg",
+                thumbnailUrl: USER_PIC,
                 mediaType: 1,
-                sourceUrl: "https://abztech.zone.id",
+                sourceUrl: OWNER_WA,
                 renderLargerThumbnail: true,
                 showAdAttribution: false
               }
@@ -111,21 +104,26 @@ module.exports = {
           },
           { quoted: quotedMsg }
         );
-
         return;
       }
 
+      // 👇 Yahan aapka number owner list mein add kar diya hai
       const owners = [
+        '923373730931@s.whatsapp.net',
         '25770239992037@lid',
-        '233533763772@s.whatsapp.net',
         '132779283087413@lid'
       ];
 
       const isOwner = owners.includes(m.sender);
 
+      // 👇 AI ko sikhaya gaya hai ke wo aapka bot hai aur kahan se hai
       const instruction = `
-You are an AI voice assistant. Respond conversationally but concisely in 2-3 sentences maximum.
+You are an AI voice assistant created by HaSSaN BrOvHi. Respond conversationally but concisely in 2-3 sentences maximum.
 User role: ${isOwner ? 'OWNER' : 'REGULAR USER'}
+
+IMPORTANT INFO:
+- If asked who made you, say "I am created by HaSSaN BrOvHi".
+- If asked where you are from, say "I am from Pakistan, Sindh, Shahdadkot".
 
 STRICT RULES:
 - Direct and friendly response
@@ -164,17 +162,8 @@ STRICT RULES:
       const buffer = await getTTSBuffer(answer, 'en');
 
       const quotedMsg = m.quoted || {
-        key: {
-          remoteJid: m.from,
-          fromMe: false,
-          id: m.id,
-          participant: m.sender
-        },
-        message: {
-          extendedTextMessage: {
-            text: m.body
-          }
-        }
+        key: { remoteJid: m.from, fromMe: false, id: m.id, participant: m.sender },
+        message: { extendedTextMessage: { text: m.body } }
       };
 
       await sock.sendMessage(
@@ -189,15 +178,15 @@ STRICT RULES:
             isForwarded: true,
             forwardedNewsletterMessageInfo: {
               newsletterJid: '120363230794474148@newsletter',
-              newsletterName: 'ᴀʙ-ᴢᴛᴇᴄʜ🇬🇭「 ᴀɪ ᴠᴏɪᴄᴇ ᴀssɪsᴛᴀɴᴛ 」',
+              newsletterName: 'HaSSaN BrOvHi MD',
               serverMessageId: 1
             },
             externalAdReply: {
               title: answer.substring(0, 30) + (answer.length > 30 ? '...' : ''),
               body: `ǫᴜᴇʀʏ: ${userQuery.substring(0, 40)}${userQuery.length > 40 ? '...' : ''}`,
-              thumbnailUrl: "https://i.ibb.co/4T7Y5qD/ab-tech-logo.jpg",
+              thumbnailUrl: USER_PIC,
               mediaType: 1,
-              sourceUrl: "https://abztech.zone.id",
+              sourceUrl: OWNER_WA,
               renderLargerThumbnail: true,
               showAdAttribution: false
             }
@@ -208,7 +197,7 @@ STRICT RULES:
 
     } catch (err) {
       console.error('AI Voice error:', err.message);
-      m.reply('❌ ꜰᴀɪʟᴇᴅ ᴛᴏ ɢᴇɴᴇʀᴀᴛᴇ ᴀᴜᴅɪᴏ ʀᴇsᴘᴏɴsᴇ. ᴘʟᴇᴀsᴇ ᴛʀʏ ᴀɢᴀɪɴ.');
+      m.reply(`❌ ꜰᴀɪʟᴇᴅ ᴛᴏ ɢᴇɴᴇʀᴀᴛᴇ ᴀᴜᴅɪᴏ ʀᴇsᴘᴏɴsᴇ. ᴘʟᴇᴀsᴇ ᴛʀʏ ᴀɢᴀɪɴ.\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
     }
   }
 };
