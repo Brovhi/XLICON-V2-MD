@@ -1,5 +1,7 @@
 const pix = require('pixcore');
 
+const OWNER_NAME = '👑 HaSSaN BrOvHi MD 👑';
+
 module.exports = {
     name: 'alive',
     description: 'Check if the bot is alive',
@@ -10,6 +12,10 @@ module.exports = {
     async execute(sock, m) {
         try {
             await m.react('⚡');
+            
+            // 👇 Yahan text message bhej rahe hain aapke naam ke sath
+            await m.reply(`⚡ *I am alive!*\n\nMera naam *${OWNER_NAME}* hai aur main 24/7 active hoon. 🖤\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+
             const width = 300;
             const height = 300;
 
@@ -35,7 +41,8 @@ module.exports = {
                     imageMessage: {
                         mimetype: 'image/jpeg',
                         jpegThumbnail: thumb,
-                        caption: 'i am alive'
+                        // 👇 Quote wali image ka caption change kar diya
+                        caption: `👑 ${OWNER_NAME} is alive ⚡` 
                     }
                 }
             };
