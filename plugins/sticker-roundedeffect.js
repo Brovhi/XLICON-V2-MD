@@ -1,4 +1,9 @@
 const pix = require('pixcore');
+const { addExif } = require('../lib/'); // 👈 Metadata ke liye import kiya
+
+// 👇 Yahan aapki branding set hai
+const OWNER_NAME = '👑 HaSSaN BrOvHi 👑';
+const BOT_NAME = 'HaSSaN BrOvHi MD';
 
 const TINTS = {
     red:    [1.35, 0.45, 0.45],
@@ -103,7 +108,7 @@ module.exports = {
 
     async execute(sock, m) {
         if (!m.quoted || !m.quoted.isMedia) {
-            return m.reply('Reply to an image with .sr');
+            return m.reply(`⚠️ Reply to an image with .sr\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
         }
 
         try {
@@ -125,7 +130,8 @@ module.exports = {
                     `Available:\n` +
                     `.sr\n.sr red\n.sr blue\n.sr green\n.sr purple\n` +
                     `.sr yellow\n.sr cyan\n.sr pink\n.sr grayscale\n` +
-                    `.sr sepia\n.sr vintage\n.sr invert\n.sr bright\n.sr dark`
+                    `.sr sepia\n.sr vintage\n.sr invert\n.sr bright\n.sr dark\n\n` +
+                    `> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`
                 );
             }
 
@@ -136,14 +142,21 @@ module.exports = {
             img = applyEffect(img, effect);
             img = roundCorners(img);
 
-            const stickerBuffer = await img.webp({ quality: 90 }).toBuffer();
+            const rawStickerBuffer = await img.webp({ quality: 90 }).toBuffer();
+
+            // 👇 Yahan sticker ke andar aapka naam (bio) inject kar rahe hain
+            const stickerBuffer = await addExif(
+                rawStickerBuffer, 
+                `${BOT_NAME}, ${OWNER_NAME}`, 
+                m.key?.id || m.id
+            );
 
             await m.reply({ sticker: stickerBuffer });
             await m.react('✅');
 
         } catch (err) {
             console.error('sticker error:', err);
-            await m.reply('Failed to create sticker: ' + (err.message || err));
+            await m.reply(`Failed to create sticker: ${err.message || err}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
         }
     }
 };
