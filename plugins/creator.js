@@ -1,3 +1,6 @@
+
+const OWNER_NAME = '👑 𝐇𝐚𝐒𝐒𝐚𝐧 𝐁𝐫𝐎𝐯𝐇𝐢 👑';
+
 module.exports = {
     name: 'creator',
     description: 'Creator/Owner contacts',
@@ -9,8 +12,10 @@ module.exports = {
         try {
              
             await m.react('👑');
+            
+            // 👇 Yahan aapka number aur naam add kiya hai
             const owners = [
-                ['233533763772@s.whatsapp.net', 'Abraham']
+                ['923373730931@s.whatsapp.net', 'HaSSaN BrOvHi']
             ];
 
             const contacts = owners.map(([id, name]) => ({
@@ -20,7 +25,7 @@ VERSION:3.0
 N:;${name};;;
 FN:${name}
 TEL;waid=${id.split('@')[0]}:${id.split('@')[0]}
-X-WA-BIZ-DESCRIPTION:ABZTECH MAIN OWNER
+X-WA-BIZ-DESCRIPTION:👑 HaSSaN BrOvHi MD MAIN OWNER 👑
 X-WA-BIZ-NAME:${name}
 END:VCARD`
             }));
@@ -32,7 +37,7 @@ END:VCARD`
         } catch (err) {
             console.error(' Creator command error:', err);
 
-            if (m?.reply) await m.reply('An error occurred while fetching the creator info.');
+            if (m?.reply) await m.reply(`An error occurred while fetching the creator info.\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
         }
     }
 };
