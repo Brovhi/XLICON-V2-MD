@@ -1,5 +1,9 @@
 const axios = require('axios');
 
+const OWNER_NAME = '👑 𝐇𝐚𝐒𝐒𝐚𝐧 𝐁𝐫𝐎𝐯𝐇𝐢 👑';
+const BOT_NAME = '𝐇𝐚𝐒𝐒𝐚𝐧 𝐁𝐫𝐎𝐯𝐇𝐢 𝐌𝐃';
+const MENU_IMG = 'https://i.imgur.com/oeMC33b.jpeg'; // Aapki Pic
+
 module.exports = {
     name: 'menu',
     description: 'Show available bot commands',
@@ -12,11 +16,12 @@ module.exports = {
 
         const now = new Date();
 
+        // 👇 Timezone Pakistan (Asia/Karachi) kar diya hai
         const date = now.toLocaleDateString('en-GB', {
             day: 'numeric',
             month: 'long',
             year: 'numeric',
-            timeZone: 'Africa/Accra'
+            timeZone: 'Asia/Karachi'
         });
 
         const time = now.toLocaleTimeString('en-US', {
@@ -24,20 +29,18 @@ module.exports = {
             minute: '2-digit',
             second: '2-digit',
             hour12: true,
-            timeZone: 'Africa/Accra'
+            timeZone: 'Asia/Karachi'
         });
 
-        const botOwner = global.ownerName || 'ABZTECH';
         const user = m.pushName || m.sender?.split('@')[0] || 'User';
-        const Founder = 'ahmmikun';
 
+        // 👇 Menu Text (Aapki Branding ke sath)
         const menuText = `
-┌─ム xʟɪᴄᴏɴ ᴍᴜʟᴛɪᴅᴇᴠɪᴄᴇ
-│ *ғᴏᴜɴᴅᴇʀ:* ${Founder}
-│ *ᴏᴡɴᴇʀ:* ${botOwner}
+┌─ム ${BOT_NAME}
+│ *ᴏᴡɴᴇʀ:* ${OWNER_NAME}
 │ *ᴜsᴇʀ:* ${user}
 │ *ᴅᴀᴛᴇ:* ${date}
-│ *ᴛɪᴍᴇ:* ${time} (GMT)
+│ *ᴛɪᴍᴇ:* ${time} (PKT)
 │ *ᴘʀᴇғɪx:* ${prefix}
 ╰──────────────────╯
 
@@ -48,8 +51,7 @@ module.exports = {
 │ ᪣ ${prefix}ᴘɪɴɢ
 │ ᪣ ${prefix}ᴜᴘᴛɪᴍᴇ
 │ ᪣ ${prefix}ᴏᴡɴᴇʀ
-│ ᪣ ${prefix}ɢᴜɪᴅᴇ
-│ ᪣ ${prefix}ᴍᴇɴᴜ2
+│ ᪣ ${prefix}ᴍᴇɴᴜ
 │
 ├─ム *ᴅᴏᴡɴʟᴏᴀᴅᴇʀs*
 │ ᪣ ${prefix}ᴛɪᴋᴛᴏᴋ / ${prefix}ᴛᴛ
@@ -63,49 +65,17 @@ module.exports = {
 │ ᪣ ${prefix}ᴡʀɪᴛᴇ
 │ ᪣ ${prefix}ᴛᴛs
 │ ᪣ ${prefix}ᴘᴏʟʟ
-│ ᪣ ${prefix}sʜᴀᴢᴀᴍ
-│ ᪣ ${prefix}ᴛᴇxᴛᴘʀᴏ
-│ ᪣ ${prefix}ᴄʜɪᴅ
 │
 ├─ム *ᴀɪ*
 │ ᪣ ${prefix}ᴀɪ
-│ ᪣ ${prefix}ᴀɪ-sᴇᴀʀᴄʜ
-│ ᪣ ${prefix}ᴀɪᴠ
+│ ᪣ ${prefix}ᴀɪsᴇᴀʀᴄʜ
 │ ᪣ ${prefix}ɢᴇɴ
-│
-├─ム *ғᴜɴ*
-│ ᪣ ${prefix}ʙʟᴜᴇ
-│ ᪣ ${prefix}ғʟᴀɢ
-│
-├─ム *ɴᴇᴡ*
-│ ᪣ ${prefix}ʜɪᴅᴇ
-│ ᪣ ${prefix}ɢᴜᴇssɢᴇɴᴅᴇʀ
-│ ᪣ ${prefix}ᴀɢᴇᴄᴀʟᴄᴜʟᴀᴛᴏʀ
-│ ᪣ ${prefix}sᴛʏʟᴇ
-│
-├─ム *ꜱᴇᴀʀᴄʜ*
-│ ᪣ ${prefix}ᴡᴇᴀᴛʜᴇʀ
-│
-├─ム *ᴀɴɪᴍᴇ*
-│ ᪣ ${prefix}ᴡᴀɪғᴜ
-│ ᪣ ${prefix}ɴᴇᴋᴏ
-│ ᪣ ${prefix}ᴋɪᴛꜱᴜɴᴇ
-│ ᪣ ${prefix}ʜᴜꜱʙᴀɴᴅᴏ
 │
 ├─ム *ɢʀᴏᴜᴘ*
 │ ᪣ ${prefix}ᴛᴀɢᴀʟʟ
 │ ᪣ ${prefix}ᴀʟʟ
-│ ᪣ ${prefix}ᴛᴀɢᴍᴇ
 │ ᪣ ${prefix}ᴄᴏᴜᴘʟᴇᴘᴘ
-│ ᪣ ${prefix}ɢʀᴏᴜᴘ
 │ ᪣ ${prefix}ɢɪɴғᴏ
-│ ᪣ ${prefix}ᴀɴᴛɪɢsᴛ
-│
-├─ム *sᴛᴀᴛᴜs*
-│ ᪣ ${prefix}ɢsᴛᴀᴛᴜs
-│
-├─ム *ᴄʜᴀɴɴᴇʟ*
-│ ᪣ ${prefix}ᴄʜᴀɴɴᴇʟɪᴅ
 │
 ├─ム *ᴀᴅᴍɪɴ*
 │ ᪣ ${prefix}ᴋɪᴄᴋ
@@ -115,21 +85,25 @@ module.exports = {
 │
 ╰─────────◆────────╯
 
-> 「 𝙏𝙞𝙢𝙚 - 𝙏𝙞𝙢𝙚𝙡𝙚𝙨𝙨 」
+> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}
 `.trim();
 
         try {
-            const imageBuffer = (await axios.get(global.menuImage, {
+            const imageBuffer = (await axios.get(MENU_IMG, {
                 responseType: 'arraybuffer'
             })).data;
 
-            await m.reply(imageBuffer, {
+            // Image ke sath caption bhejein
+            await sock.sendMessage(m.from, {
+                image: Buffer.from(imageBuffer),
                 caption: menuText
-            });
+            }, { quoted: m });
 
         } catch (err) {
             console.error('Menu error:', err);
-            await m.reply('❌ Failed to load menu. Please try again later.');
+            
+            // Agar image load na ho, toh sirf text bhej dein
+            await m.reply(menuText);
         }
     }
 };
