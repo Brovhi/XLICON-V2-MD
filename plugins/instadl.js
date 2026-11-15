@@ -1,73 +1,88 @@
 const axios = require('axios');
 
+// 👇 Aapki Branding
+const OWNER_NAME = '👑 𝐇𝐚𝐒𝐒𝐚𝐧 𝐁𝐫𝐎𝐯𝐇𝐢 👑';
+
 module.exports = {
     name: 'instadl',
     aliases: ['insta', 'instagram', 'ig'],
     
     async execute(sock, m, args) {
-         
-            await m.react('📥');
-        if (!args.length) {
-            return m.reply(`📸 ɪɴsᴛᴀɢʀᴀᴍ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ\n\nᴜsᴀɢᴇ: .ɪɢᴅʟ <ɪɴsᴛᴀɢʀᴀᴍ ᴜʀʟ>\n\nexᴀᴍᴘʟᴇ: .ɪɢᴅʟ ʜᴛᴛᴘs://ᴡᴡᴡ.ɪɴsᴛᴀɢʀᴀᴍ.ᴄᴏᴍ/ʀᴇᴇʟ/xxxxxxxx`);
-        }
-        
-        const url = args[0];
-        
-        if (!url.includes('instagram.com')) {
-            return m.reply('❌ ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴠᴀʟɪᴅ ɪɴsᴛᴀɢʀᴀᴍ ᴜʀʟ');
-        }
-        
-        await m.reply(`⏳ ᴅᴏᴡɴʟᴏᴀᴅɪɴɢ ɪɴsᴛᴀɢʀᴀᴍ ᴄᴏɴᴛᴇɴᴛ...`);
-        
         try {
-            const apiUrl = `https://api-rebix.zone.id/api/igdl?quality=480&url=${encodeURIComponent(url)}`;
+            await m.react('📥');
             
-            const response = await axios({
-                method: 'get',
-                url: apiUrl,
-                timeout: 30000
-            });
-            
-            if (!response.data.status || !response.data.result) {
-                throw new Error('API returned error');
+            if (!args.length) {
+                return m.reply(`📸 *INSTAGRAM DOWNLOADER*\n\nUsage: .ig <url>\nExample: .ig https://www.instagram.com/reel/xxxxx\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
             }
             
-            const result = response.data.result;
-            const metadata = result.metadata;
-            const mediaUrl = result.url[0];
+            const url = args[0];
             
-            const mediaResponse = await axios({
-                method: 'get',
-                url: mediaUrl,
-                responseType: 'arraybuffer',
-                timeout: 60000
-            });
+            if (!url.includes('instagram.com')) {
+                return m.reply(`❌ Please provide a valid Instagram URL.\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+            }
             
-            const buffer = Buffer.from(mediaResponse.data);
+            await m.reply(`⏳ Downloading Instagram content...\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
             
-            const caption = `📸 *ɪɴsᴛᴀɢʀᴀᴍ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ*\n\n` +
-                           `👤 *ᴜsᴇʀ:* ${metadata.username}\n` +
-                           `❤️ *ʟɪᴋᴇs:* ${metadata.like}\n` +
-                           `💬 *ᴄᴏᴍᴍᴇɴᴛs:* ${metadata.comment}\n` +
-                           `📝 *ᴄᴀᴘᴛɪᴏɴ:* ${metadata.caption || 'No caption'}\n\n` +
-                           `> ᴘᴏᴡᴇʀᴇᴅ ʙʏ sᴀᴍᴜᴇʟ-ʀᴇʙɪx`;
-            
-            if (metadata.isVideo) {
-                await m.reply(buffer, { 
-                    caption: caption,
-                    video: buffer,
+            let finalUrl = null;
+            let isVideo = false;
+            let captionText = '';
+
+            // 🟢 Try API 1 (Rebix)
+            try {
+                const apiUrl = `https://api-rebix.zone.id/api/igdl?quality=480&url=${encodeURIComponent(url)}`;
+                const res = await axios.get(apiUrl, { timeout: 15000 });
+                
+                if (res.data && res.data.status && res.data.result) {
+                    const result = res.data.result;
+                    finalUrl = result.url[0];
+                    isVideo = result.metadata.isVideo;
+                    captionText = result.metadata.caption || 'No caption';
+                }
+            } catch (e) {
+                console.log('API 1 failed, trying API 2...');
+            }
+
+            // 🟢 Fallback API 2 (Agar pehli fail ho jaye)
+            if (!finalUrl) {
+                try {
+                    const apiUrl2 = `https://btch-downloader-api-green.vercel.app/api/download/instagram?url=${encodeURIComponent(url)}`;
+                    const res2 = await axios.get(apiUrl2, { timeout: 15000 });
+                    
+                    if (res2.data && res2.data.success && res2.data.normalized && res2.data.normalized.media) {
+                        finalUrl = res2.data.normalized.media[0].url;
+                        isVideo = res2.data.normalized.media[0].type === 'video';
+                        captionText = 'Downloaded from Instagram';
+                    }
+                } catch (e) {
+                    console.log('API 2 also failed.');
+                }
+            }
+
+            if (!finalUrl) {
+                throw new Error('Failed to fetch media from Instagram. Link might be private or API is down.');
+            }
+
+            const finalCaption = `📸 *INSTAGRAM DOWNLOADER*\n\n` +
+                                 `📝 *Caption:* ${captionText.substring(0, 100)}...\n\n` +
+                                 `> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`;
+
+            // 🛡️ MEMORY SAFE: Buffer mein download nahi kar rahe, direct URL bhej rahe hain
+            if (isVideo) {
+                await sock.sendMessage(m.from, { 
+                    video: { url: finalUrl }, 
+                    caption: finalCaption,
                     mimetype: 'video/mp4'
-                });
+                }, { quoted: m });
             } else {
-                await m.reply(buffer, { 
-                    caption: caption,
-                    image: buffer
-                });
+                await sock.sendMessage(m.from, { 
+                    image: { url: finalUrl }, 
+                    caption: finalCaption
+                }, { quoted: m });
             }
             
         } catch (err) {
-            console.error('instadl error:', err);
-            await m.reply(`❌ ғᴀɪʟᴇᴅ ᴛᴏ ᴅᴏᴡɴʟᴏᴀᴅ ɪɴsᴛᴀɢʀᴀᴍ ᴄᴏɴᴛᴇɴᴛ\n\n${err.message}`);
+            console.error('Instagram error:', err.message);
+            await m.reply(`❌ *Error:* ${err.message}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
         }
     }
 };
