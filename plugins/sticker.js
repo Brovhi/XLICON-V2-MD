@@ -1,136 +1,64 @@
-const {
-  sticker,
-  webpToMp4,
-  addExif,
-  bot,
-  addAudioMetaData,
-  circleSticker,
-} = require('../lib/')
+const { Sticker, StickerTypes } = require('wa-sticker-formatter');
 
-// 👇 Yahan aapka Naam aur Bot ka Naam set hai
-const OWNER_NAME = '👑 HaSSaN BrOvHi 👑'
-const BOT_NAME = 'HaSSaN BrOvHi MD'
+const OWNER_NAME = '👑 HaSSaN BrOvHi 👑';
+const BOT_NAME = 'HaSSaN BrOvHi MD';
 
-// 🩹 1. Normal Sticker Command
-bot(
-  {
-    pattern: 'sticker',
-    desc: `Make a sticker — By ${OWNER_NAME}`,
-    type: 'sticker',
-  },
-  async (message) => {
-    if (!message.reply_message || (!message.reply_message.video && !message.reply_message.image)) {
-      return await message.send(`⚠️ Reply to an image or video to make a sticker.\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`)
+module.exports = {
+    name: 'sticker',
+    aliases: ['s', 'stiker', 'sg'],
+    description: 'Convert image or short video to sticker',
+    tags: ['tools'],
+    command: /^(s|sticker|stiker|sg)$/i,
+
+    async execute(sock, m, args) {
+        try {
+            // 🛡️ Safe Check: Agar kisi image/video ko reply nahi kiya gaya
+            if (!m.quoted || !m.quoted.isMedia) {
+                return await m.reply(`⚠️ *Cara pakai:*\nReply ke gambar atau video pendek dengan command *.s* atau *.sticker*`);
+            }
+
+            // 👇 Cek apakah yang di-reply itu gambar atau video
+            const isVideo = m.quoted.type === 'videoMessage' || m.quoted.mtype === 'videoMessage';
+            
+            // 🛡️ Video limit (max 10 detik biasanya aman untuk RAM bot)
+            if (isVideo && m.quoted.seconds > 10) {
+                return await m.reply(`❌ Video terlalu panjang! Maksimal 10 detik untuk dijadikan sticker.`);
+            }
+
+            // React loading
+            try { await m.react('⏳'); } catch(e) {}
+
+            // Download media
+            const buffer = await m.quoted.download();
+
+            if (!buffer || buffer.length === 0) {
+                return await m.reply(`❌ Gagal mengunduh media. Coba kirim ulang gambarnya.`);
+            }
+
+            // 👇 PROSES PEMBUATAN STICKER (Dengan Nama Anda)
+            const sticker = new Sticker(buffer, {
+                pack: BOT_NAME,          // Nama Pack (Atas)
+                author: OWNER_NAME,      // Nama Author (Bawah)
+                type: StickerTypes.FULL, // FULL = tidak crop (bisa juga CROPPED)
+                quality: 70,             // Kualitas (70 aman untuk RAM)
+                background: 'transparent'
+            });
+
+            const stickerBuffer = await sticker.toBuffer();
+
+            if (!stickerBuffer) {
+                return await m.reply(`❌ Gagal membuat sticker.`);
+            }
+
+            // Kirim Sticker
+            await sock.sendMessage(m.chat || m.from, { sticker: stickerBuffer }, { quoted: m });
+            
+            // React sukses
+            try { await m.react('✅'); } catch(e) {}
+
+        } catch (err) {
+            console.error('Sticker Error:', err);
+            await m.reply(`❌ Error: ${err.message}`);
+        }
     }
-
-    const mediaPath = await message.reply_message.downloadAndSaveMediaMessage('sticker')
-    const type = message.reply_message.image ? 1 : 2
-    
-    // 'str' ki jagah BOT_NAME pass kiya hai
-    const stickerData = await sticker(BOT_NAME, mediaPath, type, message.id)
-
-    return await message.send(
-      stickerData,
-      { 
-        isAnimated: !!message.reply_message.video, 
-        quoted: message.quoted,
-        packname: BOT_NAME, // 👈 Force Packname
-        author: OWNER_NAME   // 👈 Force Author
-      },
-      'sticker'
-    )
-  }
-)
-
-// ⭕ 2. Circle Sticker Command
-bot(
-  {
-    pattern: 'circle',
-    desc: `Make a circle sticker — By ${OWNER_NAME}`,
-    type: 'sticker',
-  },
-  async (message) => {
-    if (!message.reply_message || !message.reply_message.image) {
-      return await message.send(`⚠️ Reply to an image to make a circle sticker.\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`)
-    }
-
-    const mediaPath = await message.reply_message.downloadAndSaveMediaMessage('circleSticker')
-    const circleData = await circleSticker(mediaPath, message.reply_message.video, message.id)
-
-    return await message.send(circleData, { 
-        isAnimated: false, 
-        quoted: message.quoted,
-        packname: BOT_NAME, // 👈 Force Packname
-        author: OWNER_NAME   // 👈 Force Author
-    }, 'sticker')
-  }
-)
-
-// ✍️ 3. Take Command (Sticker ka naam badalna)
-bot(
-  {
-    pattern: 'take ?(.*)',
-    desc: `Change sticker pack name — By ${OWNER_NAME}`,
-    type: 'sticker',
-  },
-  async (message, match) => {
-    if (!message.reply_message || (!message.reply_message.sticker && !message.reply_message.audio)) {
-      return await message.send(`⚠️ Reply to a sticker or audio to change its metadata.\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`)
-    }
-
-    if (message.reply_message.sticker) {
-      const media = await message.reply_message.downloadMediaMessage('mp4')
-      
-      // Agar user ne kuch custom naam nahi diya, toh by-default aapka naam use hoga
-      const packData = match ? match : `${BOT_NAME}, ${OWNER_NAME}`
-      
-      return await message.send(
-        await addExif(media, packData, message.id),
-        { quoted: message.quoted },
-        'sticker'
-      )
-    }
-
-    if (!match) {
-      return await message.send(`⚠️ Usage: .take Title, Artist\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`)
-    }
-
-    const [title, artists, url] = match.split(',')
-    const audioData = await addAudioMetaData(
-      await message.reply_message.downloadMediaMessage(),
-      title,
-      artists,
-      '',
-      url
-    )
-
-    return await message.send(
-      audioData,
-      { quoted: message.quoted, mimetype: 'audio/mpeg' },
-      'audio'
-    )
-  }
-)
-
-// 🎬 4. MP4 Command (Sticker ko video banane ke liye)
-bot(
-  {
-    pattern: 'mp4',
-    desc: `Convert animated sticker to video — By ${OWNER_NAME}`,
-    type: 'sticker',
-  },
-  async (message) => {
-    if (
-      !message.reply_message ||
-      !message.reply_message.sticker ||
-      !message.reply_message.animated
-    ) {
-      return await message.send(`⚠️ Reply to an animated sticker to convert it to video.\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`)
-    }
-
-    const mediaPath = await message.reply_message.downloadAndSaveMediaMessage('sticker')
-    const videoUrl = await webpToMp4(mediaPath)
-
-    return await message.sendFromUrl(videoUrl)
-  }
-)
+};
