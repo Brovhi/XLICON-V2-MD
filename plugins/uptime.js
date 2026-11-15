@@ -18,13 +18,13 @@ module.exports = {
         await sendInteractiveMessage(sock, m.from, {
             title: '⏱️ BOT UPTIME',
             text: `The bot has been running for:\n\n*${formattedTime}*`,
-            footer: 'XLICON v2 - Aʙᴢᴛᴇᴄʜ 🇬🇭',
+            footer: 'Hassan Brovhi - BrOvHi 🇵🇰',
             interactiveButtons: [
                 {
                     name: 'cta_url',
                     buttonParamsJson: JSON.stringify({
                         display_text: 'Visit Website',
-                        url: 'https://abztech.my.id'
+                        url: '.my.id'
                     })
                 }
             ]
