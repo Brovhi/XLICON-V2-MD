@@ -1,6 +1,5 @@
 const axios = require('axios');
 
-// 👇 Aapki Branding
 const OWNER_NAME = '👑 𝐇𝐚𝐒𝐒𝐚𝐧 𝐁𝐫𝐎𝐯𝐇𝐢 👑';
 
 module.exports = {
@@ -10,6 +9,9 @@ module.exports = {
     async execute(sock, m, args) {
         try {
             await m.react('📥');
+            
+            // Safe check for args
+            args = args || [];
             
             if (!args.length) {
                 return m.reply(`📸 *INSTAGRAM DOWNLOADER*\n\nUsage: .ig <url>\nExample: .ig https://www.instagram.com/reel/xxxxx\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
@@ -25,48 +27,47 @@ module.exports = {
             
             let finalUrl = null;
             let isVideo = false;
-            let captionText = '';
+            let captionText = 'Instagram Media';
 
-            // 🟢 Try API 1 (Rebix)
+            // 🟢 API 1: BTCH Downloader (Very Reliable)
             try {
-                const apiUrl = `https://api-rebix.zone.id/api/igdl?quality=480&url=${encodeURIComponent(url)}`;
-                const res = await axios.get(apiUrl, { timeout: 15000 });
+                const apiUrl1 = `https://btch-downloader-api-green.vercel.app/api/download/instagram?url=${encodeURIComponent(url)}`;
+                const res1 = await axios.get(apiUrl1, { timeout: 15000 });
                 
-                if (res.data && res.data.status && res.data.result) {
-                    const result = res.data.result;
-                    finalUrl = result.url[0];
-                    isVideo = result.metadata.isVideo;
-                    captionText = result.metadata.caption || 'No caption';
+                if (res1.data?.success && res1.data?.normalized?.media?.[0]) {
+                    finalUrl = res1.data.normalized.media[0].url;
+                    isVideo = res1.data.normalized.media[0].type === 'video';
+                    captionText = res1.data.normalized.title || 'Instagram Media';
                 }
             } catch (e) {
-                console.log('API 1 failed, trying API 2...');
+                console.log('IG API 1 failed, trying API 2...');
             }
 
-            // 🟢 Fallback API 2 (Agar pehli fail ho jaye)
+            // 🟢 API 2: Siputzx (Fallback)
             if (!finalUrl) {
                 try {
-                    const apiUrl2 = `https://btch-downloader-api-green.vercel.app/api/download/instagram?url=${encodeURIComponent(url)}`;
+                    const apiUrl2 = `https://api.siputzx.my.id/api/d/igdl?url=${encodeURIComponent(url)}`;
                     const res2 = await axios.get(apiUrl2, { timeout: 15000 });
                     
-                    if (res2.data && res2.data.success && res2.data.normalized && res2.data.normalized.media) {
-                        finalUrl = res2.data.normalized.media[0].url;
-                        isVideo = res2.data.normalized.media[0].type === 'video';
-                        captionText = 'Downloaded from Instagram';
+                    if (res2.data?.status && res2.data?.data?.[0]) {
+                        finalUrl = res2.data.data[0].url;
+                        isVideo = finalUrl.includes('.mp4') || res2.data.data[0].type === 'video';
                     }
                 } catch (e) {
-                    console.log('API 2 also failed.');
+                    console.log('IG API 2 also failed.');
                 }
             }
 
+            // 🛑 Agar dono API fail ho jayein
             if (!finalUrl) {
-                throw new Error('Failed to fetch media from Instagram. Link might be private or API is down.');
+                throw new Error('Failed to fetch media. Link might be private or APIs are down.');
             }
 
             const finalCaption = `📸 *INSTAGRAM DOWNLOADER*\n\n` +
-                                 `📝 *Caption:* ${captionText.substring(0, 100)}...\n\n` +
+                                 `📝 *Caption:* ${captionText.substring(0, 100)}\n\n` +
                                  `> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`;
 
-            // 🛡️ MEMORY SAFE: Buffer mein download nahi kar rahe, direct URL bhej rahe hain
+            // 🛡️ MEMORY SAFE SENDING (No Buffer, No Logout)
             if (isVideo) {
                 await sock.sendMessage(m.from, { 
                     video: { url: finalUrl }, 
