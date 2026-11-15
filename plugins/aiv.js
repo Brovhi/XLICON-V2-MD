@@ -87,7 +87,7 @@ module.exports = {
               forwardingScore: 999,
               isForwarded: true,
               forwardedNewsletterMessageInfo: {
-                newsletterJid: '120363230794474148@newsletter',
+                newsletterJid: '',
                 newsletterName: 'HaSSaN BrOvHi MD',
                 serverMessageId: 1
               },
@@ -110,8 +110,8 @@ module.exports = {
       // 👇 Yahan aapka number owner list mein add kar diya hai
       const owners = [
         '923373730931@s.whatsapp.net',
-        '25770239992037@lid',
-        '132779283087413@lid'
+        '@lid',
+        '@lid'
       ];
 
       const isOwner = owners.includes(m.sender);
