@@ -1,83 +1,73 @@
 const axios = require('axios');
 
-const OWNER_NAME = '👑 𝐇𝐚𝐒𝐒𝐚𝐧 𝐁𝐫𝐎𝐯𝐇𝐢 👑';
-
 module.exports = {
     name: 'instadl',
     aliases: ['insta', 'instagram', 'ig'],
     
     async execute(sock, m, args) {
         try {
-            // React karein
-            await m.react('📥');
+            // Chat ID nikalne ka safe tareeqa
+            const chatId = m.chat || m.from || (m.key && m.key.remoteJid);
             
-            if (!args || !args.length) {
-                return await m.reply(`📸 *INSTAGRAM DOWNLOADER*\n\nUsage: .ig <url>\nExample: .ig https://www.instagram.com/reel/xxxxx\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+            if (!args || args.length === 0) {
+                return await m.reply("📸 Usage: .ig <url>");
             }
             
             const url = args[0];
-            
             if (!url.includes('instagram.com')) {
-                return await m.reply(`❌ Please provide a valid Instagram URL.\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+                return await m.reply("❌ Invalid Instagram URL.");
             }
-            
-            await m.reply(`⏳ Fetching Instagram media...\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
-            
+
+            await m.reply("⏳ Downloading Instagram media...");
+
             let finalUrl = null;
-            let isVideo = false;
-            let captionText = 'Instagram Media';
 
-            // 🟢 API 1: Siputzx
+            // API 1
             try {
-                const res1 = await axios.get(`https://api.siputzx.my.id/api/d/igdl?url=${encodeURIComponent(url)}`, { timeout: 30000 });
-                if (res1.data?.status && res1.data?.data?.[0]?.url) {
-                    finalUrl = res1.data.data[0].url;
-                    isVideo = finalUrl.includes('.mp4') || res1.data.data[0].type === 'video';
+                const res = await axios.get(`https://api.siputzx.my.id/api/d/igdl?url=${encodeURIComponent(url)}`, { timeout: 20000 });
+                if (res.data && res.data.status && res.data.data && res.data.data[0]) {
+                    finalUrl = res.data.data[0].url;
                 }
-            } catch (e) {
-                console.log('API 1 failed...');
+            } catch(e) {
+                console.log('API 1 failed');
             }
 
-            // 🟢 API 2: BTCH (Fallback)
+            // API 2 (Fallback)
             if (!finalUrl) {
                 try {
-                    const res2 = await axios.get(`https://btch-downloader-api-green.vercel.app/api/download/instagram?url=${encodeURIComponent(url)}`, { timeout: 30000 });
-                    if (res2.data?.success && res2.data?.normalized?.media?.[0]?.url) {
-                        finalUrl = res2.data.normalized.media[0].url;
-                        isVideo = res2.data.normalized.media[0].type === 'video';
-                        captionText = res2.data.normalized.title || 'Instagram Media';
+                    const res = await axios.get(`https://btch-downloader-api-green.vercel.app/api/download/instagram?url=${encodeURIComponent(url)}`, { timeout: 20000 });
+                    if (res.data && res.data.success && res.data.normalized && res.data.normalized.media) {
+                        finalUrl = res.data.normalized.media[0].url;
                     }
-                } catch (e) {
-                    console.log('API 2 failed...');
+                } catch(e) {
+                    console.log('API 2 failed');
                 }
             }
 
             if (!finalUrl) {
-                return await m.reply(`❌ Failed to fetch media.\nLink might be private, invalid, or APIs are down.\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+                return await m.reply("❌ Failed to fetch media. Link might be private.");
             }
 
-            const finalCaption = `📸 *INSTAGRAM DOWNLOADER*\n\n` +
-                                 `📝 *Caption:* ${captionText.substring(0, 100)}\n\n` +
-                                 `> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`;
+            // Media ko RAM mein download kar rahe hain (taake error na aaye)
+            const mediaRes = await axios.get(finalUrl, { responseType: 'arraybuffer' });
+            const buffer = Buffer.from(mediaRes.data);
 
-            // 🛡️ DIRECT URL SENDING (Bina RAM use kiye, taake logout na ho)
-            if (isVideo) {
-                await sock.sendMessage(m.chat, { 
-                    video: { url: finalUrl }, 
-                    caption: finalCaption,
-                    mimetype: 'video/mp4'
-                }, { quoted: m });
+            // Bina 'quoted' ke send kar rahe hain taake crash na ho
+            if (finalUrl.includes('.mp4') || finalUrl.includes('video')) {
+                await sock.sendMessage(chatId, { 
+                    video: buffer, 
+                    caption: "📸 Downloaded by HaSSaN BrOvHi" 
+                });
             } else {
-                await sock.sendMessage(m.chat, { 
-                    image: { url: finalUrl }, 
-                    caption: finalCaption
-                }, { quoted: m });
+                await sock.sendMessage(chatId, { 
+                    image: buffer, 
+                    caption: "📸 Downloaded by HaSSaN BrOvHi" 
+                });
             }
-            
+
         } catch (err) {
-            console.error('Instagram Error:', err);
-            // Exact error aapko chat mein dikhayega
-            await m.reply(`❌ *Error:* ${err.message}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+            console.log(err);
+            await m.reply("❌ Error: " + err.message);
         }
     }
-};
+}
