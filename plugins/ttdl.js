@@ -74,7 +74,7 @@ sʜᴀʀᴇs: ${stats.share || 0}
 ᴀᴜᴛʜᴏʀ: ${author.nickname || 'ᴜɴᴋɴᴏᴡɴ'}
 @${author.username || ''}
 
-ᴅᴏᴡɴʟᴏᴀᴅᴇᴅ ʙʏ XLICON V2`;
+𝘿𝙊𝙒𝙉𝙇𝙊𝘼𝘿𝙀𝘿 𝘽𝙔 𝙃𝙖𝙎𝙎𝙖𝙉 𝘽𝙧𝙊𝙫𝙃𝙞`;
 
             await sock.sendMessage(m.from, {
                 video: fs.readFileSync(filePath),
