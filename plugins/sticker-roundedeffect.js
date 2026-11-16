@@ -1,162 +1,104 @@
-const pix = require('pixcore');
-const { addExif } = require('../lib/'); // 👈 Metadata ke liye import kiya
+const sharp = require('sharp');
+const { Image } = require('node-webpmux');
+const crypto = require('crypto');
+const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
-// 👇 Yahan aapki branding set hai
 const OWNER_NAME = '👑 HaSSaN BrOvHi 👑';
 const BOT_NAME = 'HaSSaN BrOvHi MD';
 
-const TINTS = {
-    red:    [1.35, 0.45, 0.45],
-    blue:   [0.45, 0.55, 1.35],
-    green:  [0.45, 1.35, 0.45],
-    purple: [1.20, 0.40, 1.20],
-    yellow: [1.20, 1.15, 0.35],
-    cyan:   [0.35, 1.20, 1.20],
-    pink:   [1.30, 0.40, 1.15],
-};
-
-function applyEffect(img, effect) {
-    if (effect === 'normal' || effect === 'none') return img;
-
-    if (effect === 'grayscale' || effect === 'grey') return img.grayscale();
-    if (effect === 'invert') return img.negate();
-
-    if (effect === 'sepia' || effect === 'vintage') {
-        return img._apply(({ data, width, height }) => {
-            const d = new Uint8Array(data);
-            for (let i = 0; i < d.length; i += 4) {
-                const r = d[i], g = d[i + 1], b = d[i + 2];
-                d[i]     = Math.min(255, r * 0.393 + g * 0.769 + b * 0.189);
-                d[i + 1] = Math.min(255, r * 0.349 + g * 0.686 + b * 0.168);
-                d[i + 2] = Math.min(255, r * 0.272 + g * 0.534 + b * 0.131);
-            }
-            return { data: d, width, height };
-        });
-    }
-
-    if (effect === 'bright') {
-        return img._apply(({ data, width, height }) => {
-            const d = new Uint8Array(data);
-            for (let i = 0; i < d.length; i += 4) {
-                d[i]     = Math.min(255, d[i]     * 1.3);
-                d[i + 1] = Math.min(255, d[i + 1] * 1.3);
-                d[i + 2] = Math.min(255, d[i + 2] * 1.3);
-            }
-            return { data: d, width, height };
-        });
-    }
-
-    if (effect === 'dark') {
-        return img._apply(({ data, width, height }) => {
-            const d = new Uint8Array(data);
-            for (let i = 0; i < d.length; i += 4) {
-                d[i]     = d[i]     * 0.7;
-                d[i + 1] = d[i + 1] * 0.7;
-                d[i + 2] = d[i + 2] * 0.7;
-            }
-            return { data: d, width, height };
-        });
-    }
-
-    const t = TINTS[effect];
-    if (t) {
-        const [rm, gm, bm] = t;
-        return img._apply(({ data, width, height }) => {
-            const d = new Uint8Array(data);
-            for (let i = 0; i < d.length; i += 4) {
-                d[i]     = Math.min(255, d[i]     * rm);
-                d[i + 1] = Math.min(255, d[i + 1] * gm);
-                d[i + 2] = Math.min(255, d[i + 2] * bm);
-            }
-            return { data: d, width, height };
-        });
-    }
-
-    return img;
-}
-
-function roundCorners(img) {
-    const { width, height } = img.metadata();
-    const radius = Math.min(width, height) * 0.08;
-
-    return img._apply(({ data, width, height }) => {
-        const d = new Uint8Array(data);
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-                let cx, cy, inCorner = false;
-                if (x < radius && y < radius) { cx = radius; cy = radius; inCorner = true; }
-                else if (x >= width - radius && y < radius) { cx = width - radius; cy = radius; inCorner = true; }
-                else if (x < radius && y >= height - radius) { cx = radius; cy = height - radius; inCorner = true; }
-                else if (x >= width - radius && y >= height - radius) { cx = width - radius; cy = height - radius; inCorner = true; }
-
-                if (inCorner) {
-                    const distance = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
-                    if (distance > radius) {
-                        d[(y * width + x) * 4 + 3] = 0;
-                    }
-                }
-            }
-        }
-        return { data: d, width, height };
-    });
+// 🛡️ Function to add your name in sticker Bio
+async function addExif(webpBuffer, packName, authorName) {
+    const img = new Image();
+    await img.load(webpBuffer);
+    
+    const json = {
+        "sticker-pack-id": crypto.randomBytes(32).toString('hex'),
+        "sticker-pack-name": packName,
+        "sticker-pack-publisher": authorName,
+        "emojis": ["🖤"]
+    };
+    
+    const exifAttr = Buffer.from([
+        0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 
+        0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 
+        0x00, 0x00, 0x16, 0x00, 0x00, 0x00
+    ]);
+    
+    const jsonBuffer = Buffer.from(JSON.stringify(json), 'utf8');
+    const exif = Buffer.concat([exifAttr, jsonBuffer]);
+    exif.writeUIntLE(jsonBuffer.length, 14, 4);
+    
+    img.exif = exif;
+    return await img.save(null);
 }
 
 module.exports = {
     name: 'sticker',
-    aliases: ['s', 'sr', 'stg'],
-    description: 'Create rounded stickers with optional effects',
-
-    async execute(sock, m) {
-        if (!m.quoted || !m.quoted.isMedia) {
-            return m.reply(`⚠️ Reply to an image with .sr\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
-        }
-
+    description: `Make sticker — By ${OWNER_NAME}`,
+    aliases: ['s', 'stiker', 'sg'],
+    tags: ['tools'],
+    command: /^\.?(s|sticker|stiker|sg)$/i,
+    
+    async execute(sock, m, args) {
         try {
-            await m.react('🎨');
-
-            const args = (m.text || '').trim().split(/\s+/).slice(1);
-            const effect = (args[0] || 'normal').toLowerCase();
-
-            const allowedEffects = [
-                'normal', 'none',
-                'red', 'blue', 'green', 'purple', 'yellow', 'cyan', 'pink',
-                'grayscale', 'grey', 'sepia', 'vintage',
-                'invert', 'bright', 'dark',
-            ];
-
-            if (!allowedEffects.includes(effect)) {
-                return m.reply(
-                    `Unknown effect: ${effect}\n\n` +
-                    `Available:\n` +
-                    `.sr\n.sr red\n.sr blue\n.sr green\n.sr purple\n` +
-                    `.sr yellow\n.sr cyan\n.sr pink\n.sr grayscale\n` +
-                    `.sr sepia\n.sr vintage\n.sr invert\n.sr bright\n.sr dark\n\n` +
-                    `> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`
-                );
+            const chatId = m.chat || m.from || (m.key && m.key.remoteJid);
+            
+            // Check agar reply kiya gaya hai aur wo media hai
+            if (!m.quoted || !m.quoted.isMedia) {
+                return await m.reply(`⚠️ *Reply to an image or short video with .s*`);
             }
-
-            const input = await m.quoted.download();
-
-            let img = await pix.read(input);
-            img = img.resize(512, 512, { fit: 'contain' });
-            img = applyEffect(img, effect);
-            img = roundCorners(img);
-
-            const rawStickerBuffer = await img.webp({ quality: 90 }).toBuffer();
-
-            // 👇 Yahan sticker ke andar aapka naam (bio) inject kar rahe hain
-            const stickerBuffer = await addExif(
-                rawStickerBuffer, 
-                `${BOT_NAME}, ${OWNER_NAME}`, 
-                m.key?.id || m.id
-            );
-
-            await m.reply({ sticker: stickerBuffer });
-            await m.react('✅');
-
+            
+            try { await m.react('⏳'); } catch(e) {}
+            
+            // Download media
+            const buffer = await m.quoted.download();
+            
+            if (!buffer || buffer.length === 0) {
+                return await m.reply(`❌ Failed to download media.`);
+            }
+            
+            let webpBuffer;
+            
+            // 🎬 Agar video hai toh FFmpeg se convert karein
+            if (m.quoted.type === 'videoMessage') {
+                const tmpIn = path.join(os.tmpdir(), `stk_${Date.now()}.mp4`);
+                const tmpOut = path.join(os.tmpdir(), `stk_${Date.now()}.webp`);
+                
+                fs.writeFileSync(tmpIn, buffer);
+                
+                await new Promise((resolve, reject) => {
+                    exec(`ffmpeg -i "${tmpIn}" -vf "scale=512:512:force_original_aspect_ratio=decrease,fps=15,pad=512:512:-1:-1:color=black@0.0" -vcodec libwebp -lossless 0 -q:v 60 -preset default -loop 0 -an -vsync 0 "${tmpOut}"`, (err) => {
+                        if (err) reject(err);
+                        else resolve();
+                    });
+                });
+                
+                webpBuffer = fs.readFileSync(tmpOut);
+                
+                try { fs.unlinkSync(tmpIn); } catch(e) {}
+                try { fs.unlinkSync(tmpOut); } catch(e) {}
+            } else {
+                // 🖼️ Agar image hai toh Sharp se convert karein
+                webpBuffer = await sharp(buffer)
+                    .resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+                    .webp({ quality: 70 })
+                    .toBuffer();
+            }
+            
+            // 👇 Add your name to sticker bio
+            const finalBuffer = await addExif(webpBuffer, BOT_NAME, OWNER_NAME);
+            
+            // Send sticker
+            await sock.sendMessage(chatId, { sticker: finalBuffer }, { quoted: m });
+            
+            try { await m.react('✅'); } catch(e) {}
+            
         } catch (err) {
-            console.error('sticker error:', err);
-            await m.reply(`Failed to create sticker: ${err.message || err}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
+            console.error('Sticker error:', err);
+            await m.reply(`❌ *Sticker error:* ${err.message}\n\n> ᴘᴏᴡᴇʀᴇᴅ ʙʏ ${OWNER_NAME}`);
         }
     }
 };
