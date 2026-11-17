@@ -1,5 +1,5 @@
 require('dotenv').config();
-global.sessionid = process.env.SESSION_ID || 'Xlicon-75m2ubQsc2';
+global.sessionid = process.env.SESSION_ID || 'Xlicon-OZQjXuFBBW';
 global.BOT_PREFIX = '.';
 global.owners = ['923373730931@lid', '923373730931@lid'];
 global.dev = ['923373730931@s.whatsapp.net','923373730931@lid'];
